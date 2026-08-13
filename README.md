@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Resources/AppIcon.png" width="120" alt="usagent logo">
+</p>
+
 # usagent
 
 A macOS menu bar app that shows Claude subscription usage at a glance.
