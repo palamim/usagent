@@ -19,6 +19,33 @@ private func severityColor(_ percent: Double) -> Color {
     return .primary
 }
 
+private enum Brand {
+    static let barBackground = Color(red: 0x03 / 255, green: 0x20 / 255, blue: 0x42 / 255)
+    static let barBorder = Color(red: 0x10 / 255, green: 0x2B / 255, blue: 0x4C / 255)
+    static let barFill = Color(red: 0x2A / 255, green: 0x78 / 255, blue: 0xD7 / 255)
+}
+
+private struct UsageBar: View {
+    let fraction: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Brand.barBackground)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 3)
+                            .stroke(Brand.barBorder, lineWidth: 2)
+                    )
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Brand.barFill)
+                    .frame(width: geo.size.width * fraction)
+            }
+        }
+        .frame(height: 8)
+    }
+}
+
 struct MenuBarLabelView: View {
     @ObservedObject var store: UsageStore
 
@@ -119,8 +146,7 @@ private struct ClockRow: View {
             }
             .font(.subheadline)
 
-            ProgressView(value: min(clock.utilization, 100), total: 100)
-                .tint(severityColor(clock.utilization))
+            UsageBar(fraction: min(clock.utilization, 100) / 100)
 
             Text("Resets in \(timeRemaining(until: clock.resetsAt))")
                 .font(.caption)
