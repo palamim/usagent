@@ -4,20 +4,24 @@
 
 # usagent
 
-A macOS menu bar app that shows Claude subscription usage at a glance.
+Tracks Claude's two usage clocks — the 5-hour rolling window and the
+weekly cap — and shows whichever is closer to its limit in the menu
+bar. Click it for both: percent used and time to reset, side by side.
 
 ![usagent demo](docs/demo.gif)
 
-**This is unofficial and not affiliated with Anthropic** — it works by
+Reads your Claude Code OAuth token from the macOS Keychain — the same
+system credential store the OS itself uses, not a plaintext file.
+Reading it triggers a macOS authorization prompt for your login
+password, and you can revoke access at any time in Keychain
+Access.app. Makes no network calls except to Anthropic's own endpoint.
+The source is short enough to read yourself before trusting it with
+your credentials.
+
+**Unofficial and not affiliated with Anthropic** — built by
 reverse-engineering an undocumented endpoint
 (`api.anthropic.com/api/oauth/usage`), so it may break without warning
-if that changes. It reads your Claude Code OAuth token from the macOS
-Keychain, the same credential the `claude` CLI already stores there,
-and makes no network calls except to that one Anthropic endpoint. The
-source being readable is the security argument here: don't take a
-closed-source binary's word for what it does with your credentials —
-read `Sources/usagent/` yourself (it's a few hundred lines) before you
-trust it.
+if that changes.
 
 No dock icon, no settings, no telemetry.
 
@@ -114,6 +118,12 @@ the same OAuth usage endpoint (behind an opt-in `--api` flag), so
 routing through it would mean running a separate Python tool as a
 background process for no benefit — just a dependency and a moving
 part this app doesn't need.
+
+Worth naming the other prior art too: [ccusage](https://github.com/ryoppippi/ccusage)
+is the terminal tool most people reach for first, and does that well.
+usagent isn't trying to replace it — it covers the case a terminal or
+status-line tool doesn't: a persistent, at-a-glance menu bar indicator
+you're not running as a command.
 
 ## Plan support
 
