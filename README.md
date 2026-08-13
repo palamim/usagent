@@ -8,26 +8,51 @@ No dock icon, no settings, no telemetry. Reads the OAuth token Claude
 Code already stores in your Keychain and calls Anthropic's usage
 endpoint directly.
 
-## Build & run
+## Install
+
+Pick one — both end up with `usagent.app` on disk.
+
+### Option A: Download
+
+1. Grab the latest `usagent-X.Y.Z.zip` from
+   [Releases](https://github.com/palamim/usagent/releases).
+2. Unzip it and move `usagent.app` to `/Applications`.
+3. **Right-click `usagent.app` → Open** (don't double-click) the first
+   time. macOS will warn it's from an unidentified developer — that's
+   because the app is ad-hoc signed, not notarized with a paid Apple
+   Developer ID. Click **Open** anyway. This warning only appears once;
+   after that it launches normally, including via Login Items.
+
+### Option B: Build from source
+
+Requires the Xcode command line tools (Swift 5.9+, macOS 13+).
 
 ```sh
-make run     # swift run, for development (dock icon flashes briefly — expected, see below)
+git clone https://github.com/palamim/usagent.git
+cd usagent
 make app     # builds usagent.app with a proper Info.plist (no dock icon)
-make open    # builds and opens usagent.app
+make open    # builds and opens it
 ```
+
+A locally built app isn't quarantined by Gatekeeper (that only happens
+to files downloaded through a browser), so no right-click-to-open step
+is needed here. Move `usagent.app` to `/Applications` if you want it to
+live somewhere permanent.
+
+`make run` (plain `swift run`) also works for quick iteration while
+developing — it flashes a dock icon briefly on launch since it isn't
+run from a bundle, which is expected and harmless.
 
 ## Run at login
 
-There's no installer. Build the app once, then add it to Login Items:
+Once `usagent.app` is somewhere permanent (e.g. `/Applications`), add
+it to Login Items:
 
-1. `make app`
-2. Move (or leave) `usagent.app` wherever you want it to live permanently
-   — System Settings will reference that path.
-3. **System Settings → General → Login Items & Extensions → Open at
-   Login → +** → select `usagent.app`.
+**System Settings → General → Login Items & Extensions → Open at
+Login → +** → select `usagent.app`.
 
-Rebuilding overwrites the same path, so once it's added as a login item
-you don't need to re-add it after `make app` again.
+If you rebuild from source, `make app` overwrites the same path, so you
+won't need to re-add it as a login item afterward.
 
 ## First launch: Keychain prompt
 

@@ -3,3 +3,4 @@
 usagent.app/
 .DS_Store
 .vscode/
+dist/
