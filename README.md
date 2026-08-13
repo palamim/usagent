@@ -92,12 +92,29 @@ routing through it would mean running a separate Python tool as a
 background process for no benefit — just a dependency and a moving
 part this app doesn't need.
 
+## Plan support
+
+- **Pro**: what this app is built and tested against. `five_hour` and
+  `seven_day` are the two clocks shown; everything else in the response
+  is `null` and ignored.
+- **Max**: should work unchanged for the two main clocks — same shape,
+  higher limits. Max plans are also expected to populate
+  `seven_day_opus`, a separate (tighter) weekly sub-cap on Opus, which
+  usagent shows as an extra "Weekly Opus" row and folds into the
+  "closest to limit" calculation when present. **This is implemented
+  defensively but not verified against a real Max account** — if the
+  field's shape or meaning turns out to be different, please open an
+  issue with a redacted response body.
+- **Free**: out of scope. Free-tier accounts don't get Claude Code CLI
+  access, so there's no OAuth token for this app to read in the first
+  place.
+- **Team / Enterprise**: unhandled. These likely use org-pooled limits
+  rather than the personal five-hour/weekly windows this app is built
+  around — probably a different feature, not a tweak.
+
 ## Notes
 
 - The endpoint (`https://api.anthropic.com/api/oauth/usage`) is
   undocumented. It could change or disappear without notice.
-- On a Pro plan, only the `five_hour` and `seven_day` fields in the
-  response are populated; several other fields (Opus-specific limits,
-  spend/credits) are Max-only or unused and are ignored.
 - Refreshes on a 60s timer and on click, throttled to at most once per
   15s to avoid hammering the endpoint.

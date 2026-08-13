@@ -13,10 +13,14 @@ struct UsageWindow: Decodable {
 struct UsageSnapshot: Decodable {
     let fiveHour: UsageWindow?
     let sevenDay: UsageWindow?
+    // Max-only: a separate weekly sub-cap on Opus specifically, tighter
+    // than the general weekly cap. Null on Pro.
+    let sevenDayOpus: UsageWindow?
 
     enum CodingKeys: String, CodingKey {
         case fiveHour = "five_hour"
         case sevenDay = "seven_day"
+        case sevenDayOpus = "seven_day_opus"
     }
 }
 

@@ -96,6 +96,9 @@ final class UsageStore: ObservableObject {
         if let sevenDay = snapshot.sevenDay {
             result.append(ClockReading(id: "7d", label: "Weekly", utilization: sevenDay.utilization, resetsAt: sevenDay.resetsAt))
         }
+        if let sevenDayOpus = snapshot.sevenDayOpus {
+            result.append(ClockReading(id: "7d-opus", label: "Weekly Opus", utilization: sevenDayOpus.utilization, resetsAt: sevenDayOpus.resetsAt))
+        }
         return result
     }
 

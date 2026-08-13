@@ -19,6 +19,14 @@ private func severityColor(_ percent: Double) -> Color {
     return .primary
 }
 
+private func iconName(for clockID: String) -> String {
+    switch clockID {
+    case "5h": return "clock"
+    case "7d-opus": return "sparkles"
+    default: return "calendar"
+    }
+}
+
 private enum Brand {
     static let barBackground = Color(red: 0x03 / 255, green: 0x20 / 255, blue: 0x42 / 255)
     static let barBorder = Color(red: 0x10 / 255, green: 0x2B / 255, blue: 0x4C / 255)
@@ -67,7 +75,7 @@ struct MenuBarLabelView: View {
             default:
                 let mode = DisplayMode(rawValue: displayModeRaw) ?? .closest
                 if let clock = store.displayedClock(for: mode) {
-                    Image(systemName: clock.id == "5h" ? "clock" : "calendar")
+                    Image(systemName: iconName(for: clock.id))
                     Text("\(Int(clock.utilization.rounded()))%")
                         .foregroundStyle(severityColor(clock.utilization))
                 } else {
