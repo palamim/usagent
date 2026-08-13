@@ -25,8 +25,15 @@ private enum Brand {
     static let barFill = Color(red: 0x2A / 255, green: 0x78 / 255, blue: 0xD7 / 255)
 }
 
+private func barFillColor(_ percent: Double) -> Color {
+    if percent >= 90 { return .red }
+    if percent >= 70 { return .yellow }
+    return Brand.barFill
+}
+
 private struct UsageBar: View {
     let fraction: Double
+    let fillColor: Color
 
     var body: some View {
         GeometryReader { geo in
@@ -35,10 +42,10 @@ private struct UsageBar: View {
                     .fill(Brand.barBackground)
                     .overlay(
                         RoundedRectangle(cornerRadius: 3)
-                            .stroke(Brand.barBorder, lineWidth: 2)
+                            .stroke(Brand.barBorder, lineWidth: 1)
                     )
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(Brand.barFill)
+                    .fill(fillColor)
                     .frame(width: geo.size.width * fraction)
             }
         }
@@ -146,7 +153,7 @@ private struct ClockRow: View {
             }
             .font(.subheadline)
 
-            UsageBar(fraction: min(clock.utilization, 100) / 100)
+            UsageBar(fraction: min(clock.utilization, 100) / 100, fillColor: barFillColor(clock.utilization))
 
             Text("Resets in \(timeRemaining(until: clock.resetsAt))")
                 .font(.caption)
