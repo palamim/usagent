@@ -47,7 +47,7 @@ open "$INSTALLED_PATH"
 
 EXISTING_ITEMS="$(osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null || echo "")"
 if [[ "$EXISTING_ITEMS" != *"$APP_NAME"* ]]; then
-    read -r -p "Add $APP_NAME to Login Items? [y/N] " ADD_LOGIN_ITEM
+    read -r -p "Add $APP_NAME to Login Items? [y/N] " ADD_LOGIN_ITEM || ADD_LOGIN_ITEM="n"
     if [[ "$ADD_LOGIN_ITEM" =~ ^[Yy]$ ]]; then
         osascript -e "tell application \"System Events\" to make login item at end with properties {path:\"$INSTALLED_PATH\", hidden:false}"
         echo "Added to Login Items."
