@@ -55,6 +55,7 @@ private struct UsageBar: View {
 
 struct MenuBarLabelView: View {
     @ObservedObject var store: UsageStore
+    @AppStorage("displayMode") private var displayModeRaw: String = DisplayMode.closest.rawValue
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -64,10 +65,11 @@ struct MenuBarLabelView: View {
             case .error where store.lastGood == nil:
                 Image(systemName: "wifi.exclamationmark")
             default:
-                if let binding = store.bindingClock {
-                    Image(systemName: binding.id == "5h" ? "clock" : "calendar")
-                    Text("\(Int(binding.utilization.rounded()))%")
-                        .foregroundStyle(severityColor(binding.utilization))
+                let mode = DisplayMode(rawValue: displayModeRaw) ?? .closest
+                if let clock = store.displayedClock(for: mode) {
+                    Image(systemName: clock.id == "5h" ? "clock" : "calendar")
+                    Text("\(Int(clock.utilization.rounded()))%")
+                        .foregroundStyle(severityColor(clock.utilization))
                 } else {
                     Text("…")
                 }
@@ -79,6 +81,7 @@ struct MenuBarLabelView: View {
 
 struct MenuBarContentView: View {
     @ObservedObject var store: UsageStore
+    @AppStorage("displayMode") private var displayModeRaw: String = DisplayMode.closest.rawValue
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -100,6 +103,21 @@ struct MenuBarContentView: View {
                 Text("Updated \(fetchedAt.formatted(date: .omitted, time: .shortened))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Menu bar shows")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Picker("Menu bar shows", selection: $displayModeRaw) {
+                    ForEach(DisplayMode.allCases) { mode in
+                        Text(mode.label).tag(mode.rawValue)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
             }
 
             Divider()

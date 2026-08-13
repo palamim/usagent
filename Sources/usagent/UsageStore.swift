@@ -16,6 +16,22 @@ struct ClockReading: Identifiable {
     let resetsAt: Date?
 }
 
+enum DisplayMode: String, CaseIterable, Identifiable {
+    case closest
+    case fiveHour
+    case weekly
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .closest: return "Closest"
+        case .fiveHour: return "5h"
+        case .weekly: return "Weekly"
+        }
+    }
+}
+
 @MainActor
 final class UsageStore: ObservableObject {
     @Published private(set) var state: UsageState = .loading
@@ -85,5 +101,13 @@ final class UsageStore: ObservableObject {
 
     var bindingClock: ClockReading? {
         clocks.max(by: { $0.utilization < $1.utilization })
+    }
+
+    func displayedClock(for mode: DisplayMode) -> ClockReading? {
+        switch mode {
+        case .closest: return bindingClock
+        case .fiveHour: return clocks.first { $0.id == "5h" }
+        case .weekly: return clocks.first { $0.id == "7d" }
+        }
     }
 }
