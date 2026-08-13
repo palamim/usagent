@@ -46,6 +46,16 @@ live somewhere permanent.
 developing — it flashes a dock icon briefly on launch since it isn't
 run from a bundle, which is expected and harmless.
 
+### Tests
+
+`swift test` runs the `UsageStore` unit tests (state-machine behavior,
+binding-clock selection) against a mocked `UsageFetching`, no network
+or Keychain access needed. Requires full **Xcode.app**, not just the
+Command Line Tools — that's an XCTest requirement on macOS, not
+something this project controls. CI (`.github/workflows/tests.yml`)
+runs the suite on every push, since GitHub's macOS runners ship with
+Xcode preinstalled.
+
 ## Run at login
 
 Once `usagent.app` is somewhere permanent (e.g. `/Applications`), add

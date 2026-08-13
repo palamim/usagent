@@ -32,16 +32,20 @@ enum UsageFetchError: Error {
     case decoding
 }
 
-enum UsageClient {
+protocol UsageFetching: Sendable {
+    func fetch() async -> Result<UsageSnapshot, UsageFetchError>
+}
+
+struct UsageClient: UsageFetching {
     private static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")!
 
     private static let dateDecoder: JSONDecoder = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let string = try container.decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             guard let date = formatter.date(from: string) else {
                 throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unrecognized date: \(string)")
             }
@@ -50,7 +54,7 @@ enum UsageClient {
         return decoder
     }()
 
-    static func fetch() async -> Result<UsageSnapshot, UsageFetchError> {
+    func fetch() async -> Result<UsageSnapshot, UsageFetchError> {
         let credentials: ClaudeCredentials
         switch CredentialsStore.read() {
         case .failure:
@@ -63,7 +67,7 @@ enum UsageClient {
             return .failure(.tokenExpired)
         }
 
-        var request = URLRequest(url: endpoint)
+        var request = URLRequest(url: Self.endpoint)
         request.httpMethod = "GET"
         request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -82,7 +86,7 @@ enum UsageClient {
             guard http.statusCode == 200 else {
                 return .failure(.network("HTTP \(http.statusCode)"))
             }
-            guard let snapshot = try? dateDecoder.decode(UsageSnapshot.self, from: data) else {
+            guard let snapshot = try? Self.dateDecoder.decode(UsageSnapshot.self, from: data) else {
                 return .failure(.decoding)
             }
             return .success(snapshot)
