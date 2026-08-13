@@ -2,3 +2,4 @@
 .swiftpm/
 usagent.app/
 .DS_Store
+.vscode/
