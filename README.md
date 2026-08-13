@@ -4,9 +4,18 @@ A macOS menu bar app that shows Claude subscription usage at a glance.
 
 ![usagent demo](docs/demo.gif)
 
-No dock icon, no settings, no telemetry. Reads the OAuth token Claude
-Code already stores in your Keychain and calls Anthropic's usage
-endpoint directly.
+**This is unofficial and not affiliated with Anthropic** — it works by
+reverse-engineering an undocumented endpoint
+(`api.anthropic.com/api/oauth/usage`), so it may break without warning
+if that changes. It reads your Claude Code OAuth token from the macOS
+Keychain, the same credential the `claude` CLI already stores there,
+and makes no network calls except to that one Anthropic endpoint. The
+source being readable is the security argument here: don't take a
+closed-source binary's word for what it does with your credentials —
+read `Sources/usagent/` yourself (it's a few hundred lines) before you
+trust it.
+
+No dock icon, no settings, no telemetry.
 
 ## Install
 
