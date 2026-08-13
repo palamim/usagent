@@ -23,6 +23,9 @@ Pick one — both end up with `usagent.app` on disk.
    Developer ID. Click **Open** anyway. This warning only appears once;
    after that it launches normally, including via Login Items.
 
+After the first manual install, `./Scripts/update.sh` (or `make update`)
+automates picking up new releases — see [Update](#update) below.
+
 ### Option B: Build from source
 
 Requires the Xcode command line tools (Swift 5.9+, macOS 13+).
@@ -53,6 +56,18 @@ Login → +** → select `usagent.app`.
 
 If you rebuild from source, `make app` overwrites the same path, so you
 won't need to re-add it as a login item afterward.
+
+## Update
+
+```sh
+make update    # or ./Scripts/update.sh
+```
+
+Downloads the latest GitHub release, quits any running `usagent`,
+replaces `/Applications/usagent.app` with the new build, clears the
+Gatekeeper quarantine flag so it opens without a right-click, then
+reopens it. Prompts to add it to Login Items if it isn't already there.
+Requires the `gh` CLI, authenticated (`gh auth login`).
 
 ## First launch: Keychain prompt
 

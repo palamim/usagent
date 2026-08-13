@@ -1,4 +1,4 @@
-.PHONY: run app open clean
+.PHONY: run app open update clean
 
 run:
 	swift run
@@ -8,6 +8,9 @@ app:
 
 open: app
 	open usagent.app
+
+update:
+	./Scripts/update.sh
 
 clean:
 	rm -rf .build usagent.app
