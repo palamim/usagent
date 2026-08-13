@@ -27,33 +27,53 @@ private func iconName(for clockID: String) -> String {
     }
 }
 
-private enum Brand {
-    static let barBackground = Color(red: 0x03 / 255, green: 0x20 / 255, blue: 0x42 / 255)
-    static let barBorder = Color(red: 0x10 / 255, green: 0x2B / 255, blue: 0x4C / 255)
-    static let barFill = Color(red: 0x2A / 255, green: 0x78 / 255, blue: 0xD7 / 255)
+// Each severity tier gets a background/border in the same hue as its
+// fill, at the same saturation/brightness relationship as the default
+// blue tier — not just a colored fill on a fixed blue background.
+private struct BarPalette {
+    let background: Color
+    let border: Color
+    let fill: Color
 }
 
-private func barFillColor(_ percent: Double) -> Color {
-    if percent >= 90 { return .red }
-    if percent >= 70 { return .yellow }
-    return Brand.barFill
+private func barPalette(for percent: Double) -> BarPalette {
+    if percent >= 90 {
+        return BarPalette(
+            background: Color(red: 0x42 / 255, green: 0x09 / 255, blue: 0x03 / 255),
+            border: Color(red: 0x4D / 255, green: 0x15 / 255, blue: 0x10 / 255),
+            fill: .red
+        )
+    }
+    if percent >= 70 {
+        return BarPalette(
+            background: Color(red: 0x42 / 255, green: 0x36 / 255, blue: 0x03 / 255),
+            border: Color(red: 0x4D / 255, green: 0x40 / 255, blue: 0x10 / 255),
+            fill: .yellow
+        )
+    }
+    return BarPalette(
+        background: Color(red: 0x03 / 255, green: 0x20 / 255, blue: 0x42 / 255),
+        border: Color(red: 0x10 / 255, green: 0x2B / 255, blue: 0x4C / 255),
+        fill: Color(red: 0x2A / 255, green: 0x78 / 255, blue: 0xD7 / 255)
+    )
 }
 
 private struct UsageBar: View {
-    let fraction: Double
-    let fillColor: Color
+    let percent: Double
 
     var body: some View {
+        let palette = barPalette(for: percent)
+        let fraction = min(percent, 100) / 100
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(Brand.barBackground)
+                    .fill(palette.background)
                     .overlay(
                         RoundedRectangle(cornerRadius: 3)
-                            .stroke(Brand.barBorder, lineWidth: 1)
+                            .stroke(palette.border, lineWidth: 1)
                     )
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(fillColor)
+                    .fill(palette.fill)
                     .frame(width: geo.size.width * fraction)
             }
         }
@@ -179,7 +199,7 @@ private struct ClockRow: View {
             }
             .font(.subheadline)
 
-            UsageBar(fraction: min(clock.utilization, 100) / 100, fillColor: barFillColor(clock.utilization))
+            UsageBar(percent: clock.utilization)
 
             Text("Resets in \(timeRemaining(until: clock.resetsAt))")
                 .font(.caption)
