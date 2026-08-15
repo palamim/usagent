@@ -195,7 +195,6 @@ private struct ClockRow: View {
                 Text(clock.label)
                 Spacer()
                 Text("\(Int(clock.utilization.rounded()))%")
-                    .foregroundStyle(severityColor(clock.utilization))
             }
             .font(.subheadline)
 
