@@ -14,14 +14,24 @@ Reads your Claude Code OAuth token from the macOS Keychain — the same
 system credential store the OS itself uses, not a plaintext file.
 Reading it triggers a macOS authorization prompt for your login
 password, and you can revoke access at any time in Keychain
-Access.app. Makes no network calls except to Anthropic's own endpoint.
+Access.app. Makes no network calls except to Anthropic's own endpoints.
 The source is short enough to read yourself before trusting it with
 your credentials.
 
+When the token is expired or close to it, usagent refreshes it itself
+— the same silent OAuth refresh the `claude` CLI does on every
+invocation — and writes the renewed token back to the same Keychain
+item. That means you don't need to run `claude` in a terminal just to
+keep the token alive if you only use Claude in the browser; the
+terminal login is only needed once, up front, and again if the refresh
+token itself is ever revoked.
+
 **Unofficial and not affiliated with Anthropic** — built by
-reverse-engineering an undocumented endpoint
-(`api.anthropic.com/api/oauth/usage`), so it may break without warning
-if that changes.
+reverse-engineering undocumented endpoints
+(`api.anthropic.com/api/oauth/usage` for usage data,
+`console.anthropic.com/v1/oauth/token` for token refresh, using Claude
+Code's own public OAuth client ID), so it may break without warning if
+either changes.
 
 No dock icon, no settings, no telemetry.
 
@@ -100,9 +110,10 @@ Requires the `gh` CLI, authenticated (`gh auth login`).
 
 The OAuth token lives in the macOS Keychain under the service name
 `Claude Code-credentials`, created by the Claude Code CLI — not by this
-app. The first time usagent reads it, macOS will prompt for your login
-password to authorize access. **Click "Always Allow"** (not "Allow") —
-otherwise you'll be prompted again on every launch or every refresh.
+app. The first time usagent reads (or refreshes and writes back) it,
+macOS will prompt for your login password to authorize access. **Click
+"Always Allow"** (not "Allow") — otherwise you'll be prompted again on
+every launch or every refresh.
 
 If you're prompted repeatedly even after that, the Keychain item's ACL
 may have been reset (e.g. after rebuilding with a different code

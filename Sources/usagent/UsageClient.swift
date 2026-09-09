@@ -38,6 +38,15 @@ protocol UsageFetching: Sendable {
 
 struct UsageClient: UsageFetching {
     private static let endpoint = URL(string: "https://api.anthropic.com/api/oauth/usage")!
+    // Refresh proactively this far ahead of expiry, so a 60s-cadence poller
+    // doesn't race the token expiring mid-request.
+    private static let refreshBuffer: TimeInterval = 60
+
+    private let tokenRefresher: TokenRefreshing
+
+    init(tokenRefresher: TokenRefreshing = TokenRefresher()) {
+        self.tokenRefresher = tokenRefresher
+    }
 
     private static let dateDecoder: JSONDecoder = {
         let decoder = JSONDecoder()
@@ -55,7 +64,7 @@ struct UsageClient: UsageFetching {
     }()
 
     func fetch() async -> Result<UsageSnapshot, UsageFetchError> {
-        let credentials: ClaudeCredentials
+        var credentials: ClaudeCredentials
         switch CredentialsStore.read() {
         case .failure:
             return .failure(.noCredentials)
@@ -63,16 +72,55 @@ struct UsageClient: UsageFetching {
             credentials = creds
         }
 
-        if credentials.expiresAt < Date() {
-            return .failure(.tokenExpired)
+        if credentials.expiresAt < Date().addingTimeInterval(Self.refreshBuffer) {
+            switch await tokenRefresher.refresh(refreshToken: credentials.refreshToken) {
+            case .success(let refreshed):
+                credentials = ClaudeCredentials(
+                    accessToken: refreshed.accessToken,
+                    refreshToken: refreshed.refreshToken,
+                    expiresAt: refreshed.expiresAt
+                )
+                CredentialsStore.write(
+                    accessToken: refreshed.accessToken,
+                    refreshToken: refreshed.refreshToken,
+                    expiresAt: refreshed.expiresAt
+                )
+            case .failure:
+                // Refresh failed — only fatal if the token we already have
+                // is actually expired; otherwise fall through and use it,
+                // since it's still good for up to refreshBuffer longer.
+                if credentials.expiresAt < Date() {
+                    return .failure(.tokenExpired)
+                }
+            }
         }
 
+        let result = await performRequest(accessToken: credentials.accessToken)
+
+        // The proactive refresh above should make this rare, but the server
+        // is the final authority: if it says the token is bad despite our
+        // bookkeeping, try one refresh-and-retry before giving up.
+        guard case .failure(.unauthorized) = result else {
+            return result
+        }
+        guard case .success(let refreshed) = await tokenRefresher.refresh(refreshToken: credentials.refreshToken) else {
+            return result
+        }
+        CredentialsStore.write(
+            accessToken: refreshed.accessToken,
+            refreshToken: refreshed.refreshToken,
+            expiresAt: refreshed.expiresAt
+        )
+        return await performRequest(accessToken: refreshed.accessToken)
+    }
+
+    private func performRequest(accessToken: String) async -> Result<UsageSnapshot, UsageFetchError> {
         var request = URLRequest(url: Self.endpoint)
         request.httpMethod = "GET"
         request.setValue("application/json, text/plain, */*", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("claude-code/2.0.15", forHTTPHeaderField: "User-Agent")
-        request.setValue("Bearer \(credentials.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("oauth-2025-04-20", forHTTPHeaderField: "anthropic-beta")
 
         do {
